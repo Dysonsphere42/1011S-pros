@@ -96,8 +96,6 @@ void opcontrol() {
 
 	//declare static varibles
 	double turnimportace = 1;
-	double drivespeedmax = 1;
-	double turnspeedmax = 1;
 
 
 	while (true) {
@@ -106,36 +104,14 @@ void opcontrol() {
 		double speedval = master.get_analog(ANALOG_LEFT_Y);
 
 		//volt calculations
-		double turnvolts = (turnval * 0.12) * turnspeedmax;
-		double speedvolts = (speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0) * turnimportace)) * drivespeedmax;
+		double turnvolts = (turnval * 0.12);
+		double speedvolts = (speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0) * turnimportace));
 
 		//spin motors
 		rightm.move_voltage((speedvolts + turnvolts) * 1000);
 		leftm.move_voltage((speedvolts - turnvolts) * 1000);
 		launcherm.move_voltage(12000 * master.get_digital(DIGITAL_R1));
 		intakem.move_voltage(12000 * master.get_digital(DIGITAL_L1));
-
-		//check for speedmax changes
-		if(master.get_digital(DIGITAL_UP)){
-			drivespeedmax += 0.1;
-			master.clear();
-			master.set_text(0, 0, std::to_string(drivespeedmax));
-		}
-		if(master.get_digital(DIGITAL_DOWN)){
-			drivespeedmax -= 0.1;
-			master.clear();
-			master.set_text(0, 0, std::to_string(drivespeedmax));
-		}
-		if(master.get_digital(DIGITAL_LEFT)){
-			turnspeedmax -= 0.1;
-			master.clear();
-			master.set_text(0, 0, std::to_string(turnspeedmax));
-		}
-		if(master.get_digital(DIGITAL_RIGHT)){
-			turnspeedmax += 0.1;
-			master.clear();
-			master.set_text(0, 0, std::to_string(turnspeedmax));
-		}
 
 		pros::delay(20);
 	
