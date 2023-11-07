@@ -101,8 +101,8 @@ void opcontrol() {
 		double speedval = master.get_analog(ANALOG_LEFT_Y);
 
 		//volt calculations
-		double turnvolts = turnval * 0.12;
-		double speedvolts = speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0) * turnimportace);
+		double turnvolts = (turnval * 0.12);
+		double speedvolts = (speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0)));
 
 		//spin motors
 		rightm.move_voltage((speedvolts + turnvolts) * 1000);
