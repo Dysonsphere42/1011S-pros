@@ -13,17 +13,69 @@
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
-void initialize() {
-	//initalize motors
-	pros::Motor rightmai (2, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor rightmbi (4, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor leftmai (3, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor leftmbi (6, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor launchermi (7, MOTOR_GEARSET_36, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor intakemi (9, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+void autoninit(){
 
+}
+
+void initialize() {
+	//initalize devices
+	pros::Motor rightmai (2, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor rightmbi (4, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor leftmai (3, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor leftmbi (6, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor launchermi (7, MOTOR_GEARSET_36, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::IMU inertial_sensor(20);
+	//initalize motor groups
+	pros::Motor_Group rightm({rightmai, rightmbi});
+	pros::Motor_Group leftm({leftmai, leftmbi});
+
+	//initalize drivetrain
+	lemlib::Drivetrain_t drivetrain{
+		&leftm,
+		&rightm,
+		12.2,
+		4,
+		900
+	};
+
+	//initialize odometry
+	lemlib::OdomSensors_t sensors{
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		&inertial_sensor
+	};
+
+	// forward/backward PID
+	lemlib::ChassisController_t lateralController {
+    	8, // kP
+    	30, // kD
+    	1, // smallErrorRange
+    	100, // smallErrorTimeout
+    	3, // largeErrorRange
+    	500, // largeErrorTimeout
+    	5 // slew rate
+	};
+ 
+	// turning PID
+	lemlib::ChassisController_t angularController {
+    	4, // kP
+    	40, // kD
+    	1, // smallErrorRange
+    	100, // smallErrorTimeout
+    	3, // largeErrorRange
+    	500, // largeErrorTimeout
+    	0 // slew rate
+	};
+
+	//initalize chassis
+	lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensors);
+
+	chassis.calibrate();
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello There!");
+	pros::lcd::set_text(1, "calibrated!");
 }
 
 /**
@@ -56,7 +108,6 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous(){
-	
 }
 
 /**
@@ -82,7 +133,7 @@ void opcontrol() {
 	pros::Motor leftma(3);
 	pros::Motor leftmb(6);
 	pros::Motor launcherm(7);
-	pros::Motor intakem(9);
+	pros::Motor intakem(11);
 
 	//set motor groups
 	pros::Motor_Group rightm ({rightma, rightmb});
@@ -108,10 +159,10 @@ void opcontrol() {
 		double speedvolts = (speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0)));
 
 		//spin motors
-		rightm.move_voltage((speedvolts + turnvolts) * 1000);
-		leftm.move_voltage((speedvolts - turnvolts) * 1000);
+		rightm.move_voltage((speedvolts - turnvolts) * 1000);
+		leftm.move_voltage((speedvolts + turnvolts) * 1000);
 		launcherm.move_voltage(12000 * master.get_digital(DIGITAL_R1));
-		intakem.move_voltage(12000 * master.get_digital(DIGITAL_L1));
+		intakem.move_voltage(12000 * (master.get_digital(DIGITAL_L1) - master.get_digital(DIGITAL_L2)));
 
 		pros::delay(20);
 	
