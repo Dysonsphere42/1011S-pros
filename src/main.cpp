@@ -20,7 +20,7 @@ void initialize() {
 	pros::Motor leftmai (3, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
 	pros::Motor leftmbi (6, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
 	pros::Motor launchermi (7, MOTOR_GEARSET_36, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor intakemi (9, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
 
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello There!");
@@ -82,7 +82,7 @@ void opcontrol() {
 	pros::Motor leftma(3);
 	pros::Motor leftmb(6);
 	pros::Motor launcherm(7);
-	pros::Motor intakem(9);
+	pros::Motor intakem(11);
 
 	//set motor groups
 	pros::Motor_Group rightm ({rightma, rightmb});
@@ -111,7 +111,7 @@ void opcontrol() {
 		rightm.move_voltage((speedvolts + turnvolts) * 1000);
 		leftm.move_voltage((speedvolts - turnvolts) * 1000);
 		launcherm.move_voltage(12000 * master.get_digital(DIGITAL_R1));
-		intakem.move_voltage(12000 * master.get_digital(DIGITAL_L1));
+		intakem.move_voltage(12000 * (master.get_digital(DIGITAL_L1) - master.get_digital(DIGITAL_L2)));
 
 		pros::delay(20);
 	
