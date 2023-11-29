@@ -1,5 +1,5 @@
 #include "main.h"
-#include "lemlib/api.hpp"
+#include "okapi/api.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -13,9 +13,6 @@
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
-void autoninit(){
-
-}
 
 void initialize() {
 	//initalize devices
@@ -23,59 +20,16 @@ void initialize() {
 	pros::Motor rightmbi (4, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
 	pros::Motor leftmai (3, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
 	pros::Motor leftmbi (6, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor launchermi (7, MOTOR_GEARSET_36, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor launchermi (7, MOTOR_GEARSET_36, false, MOTOR_ENCODER_DEGREES);
 	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
 	pros::IMU inertial_sensor(20);
 	//initalize motor groups
 	pros::Motor_Group rightm({rightmai, rightmbi});
 	pros::Motor_Group leftm({leftmai, leftmbi});
 
-	//initalize drivetrain
-	lemlib::Drivetrain_t drivetrain{
-		&leftm,
-		&rightm,
-		12.2,
-		4,
-		900
-	};
-
-	//initialize odometry
-	lemlib::OdomSensors_t sensors{
-		nullptr,
-		nullptr,
-		nullptr,
-		nullptr,
-		&inertial_sensor
-	};
-
-	// forward/backward PID
-	lemlib::ChassisController_t lateralController {
-    	8, // kP
-    	30, // kD
-    	1, // smallErrorRange
-    	100, // smallErrorTimeout
-    	3, // largeErrorRange
-    	500, // largeErrorTimeout
-    	5 // slew rate
-	};
- 
-	// turning PID
-	lemlib::ChassisController_t angularController {
-    	4, // kP
-    	40, // kD
-    	1, // smallErrorRange
-    	100, // smallErrorTimeout
-    	3, // largeErrorRange
-    	500, // largeErrorTimeout
-    	0 // slew rate
-	};
-
-	//initalize chassis
-	lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensors);
-
-	chassis.calibrate();
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "calibrated!");
+	pros::lcd::set_text(1, "hello there!");
+	
 }
 
 /**
@@ -108,6 +62,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous(){
+	
 }
 
 /**
@@ -152,7 +107,7 @@ void opcontrol() {
 	while (true) {
 		//update live varibles
 		double turnval = master.get_analog(ANALOG_RIGHT_X);
-		double speedval = master.get_analog(ANALOG_LEFT_Y);
+		double speedval = master.get_analog(ANALOG_LEFT_Y) * -1;
 
 		//volt calculations
 		double turnvolts = (turnval * 0.12);
