@@ -26,6 +26,14 @@ void initialize() {
 	//initalize motor groups
 	pros::Motor_Group rightm({rightmai, rightmbi});
 	pros::Motor_Group leftm({leftmai, leftmbi});
+=======
+	//initalize motors
+	pros::Motor rightmai (2, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor rightmbi (4, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor leftmai (3, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor leftmbi (6, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor launchermi (7, MOTOR_GEARSET_36, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
 
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "hello there!");
