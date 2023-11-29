@@ -1,5 +1,5 @@
 #include "main.h"
-#include "lemlib/api.hpp"
+#include "okapi/api.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -13,17 +13,23 @@
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
+
 void initialize() {
-	//initalize motors
-	pros::Motor rightmai (2, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor rightmbi (4, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor leftmai (3, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor leftmbi (6, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor launchermi (7, MOTOR_GEARSET_36, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor intakemi (9, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	//initalize devices
+	pros::Motor rightmai (2, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor rightmbi (4, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor leftmai (3, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor leftmbi (6, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::Motor launchermi (7, MOTOR_GEARSET_36, false, MOTOR_ENCODER_DEGREES);
+	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+	pros::IMU inertial_sensor(20);
+	//initalize motor groups
+	pros::Motor_Group rightm({rightmai, rightmbi});
+	pros::Motor_Group leftm({leftmai, leftmbi});
 
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello There!");
+	pros::lcd::set_text(1, "hello there!");
+	
 }
 
 /**
@@ -82,7 +88,7 @@ void opcontrol() {
 	pros::Motor leftma(3);
 	pros::Motor leftmb(6);
 	pros::Motor launcherm(7);
-	pros::Motor intakem(9);
+	pros::Motor intakem(11);
 
 	//set motor groups
 	pros::Motor_Group rightm ({rightma, rightmb});
@@ -101,17 +107,17 @@ void opcontrol() {
 	while (true) {
 		//update live varibles
 		double turnval = master.get_analog(ANALOG_RIGHT_X);
-		double speedval = master.get_analog(ANALOG_LEFT_Y);
+		double speedval = master.get_analog(ANALOG_LEFT_Y) * -1;
 
 		//volt calculations
 		double turnvolts = (turnval * 0.12);
 		double speedvolts = (speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0)));
 
 		//spin motors
-		rightm.move_voltage((speedvolts + turnvolts) * 1000);
-		leftm.move_voltage((speedvolts - turnvolts) * 1000);
+		rightm.move_voltage((speedvolts - turnvolts) * 1000);
+		leftm.move_voltage((speedvolts + turnvolts) * 1000);
 		launcherm.move_voltage(12000 * master.get_digital(DIGITAL_R1));
-		intakem.move_voltage(12000 * master.get_digital(DIGITAL_L1));
+		intakem.move_voltage(12000 * (master.get_digital(DIGITAL_L1) - master.get_digital(DIGITAL_L2)));
 
 		pros::delay(20);
 	
