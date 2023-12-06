@@ -1,5 +1,5 @@
 #include "main.h"
-#include "okapi/api.hpp"
+#include "lemlib/api.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -14,6 +14,56 @@
  * to keep execution time for this mode under a few seconds.
  */
 
+//initialize motors
+pros::Motor rightma(2);
+pros::Motor rightmb(4);
+pros::Motor leftma(3);
+pros::Motor leftmb(6);
+pros::IMU imu_1(20);
+//initialize motor groups
+pros::Motor_Group rightm({rightma, rightmb});
+pros::Motor_Group leftm({leftma, leftmb});
+
+lemlib::OdomSensors_t sensors{
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	&imu_1
+};
+
+// forward/backward PID
+lemlib::ChassisController_t lateralController {
+   	8, // kP
+   	30, // kD
+   	1, // smallErrorRange
+   	100, // smallErrorTimeout
+   	3, // largeErrorRange
+   	500, // largeErrorTimeout
+   	5 // slew rate
+};
+ 
+	// turning PID
+lemlib::ChassisController_t angularController {
+   	4, // kP
+   	40, // kD
+   	1, // smallErrorRange
+   	100, // smallErrorTimeout
+   	3, // largeErrorRange
+   	500, // largeErrorTimeout
+   	0 // slew rate
+};
+
+	//initialize drive train
+lemlib::Drivetrain_t drivetrain1{
+	&leftm,
+	&rightm,
+	10,
+	4,
+	400
+};
+lemlib::Chassis chassis(drivetrain1, lateralController, angularController, sensors);
+
 void initialize() {
 	//initalize devices
 	pros::Motor rightmai (2, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
@@ -23,10 +73,8 @@ void initialize() {
 	pros::Motor launchermi (7, MOTOR_GEARSET_36, false, MOTOR_ENCODER_DEGREES);
 	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
 	pros::IMU inertial_sensor(20);
-	//initalize motor groups
-	pros::Motor_Group rightm({rightmai, rightmbi});
-	pros::Motor_Group leftm({leftmai, leftmbi});
 
+	chassis.calibrate();
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "hello there!");
 	
@@ -62,6 +110,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous(){
+	
 	
 }
 
@@ -108,6 +157,7 @@ void opcontrol() {
 		//update live varibles
 		double turnval = master.get_analog(ANALOG_RIGHT_X);
 		double speedval = master.get_analog(ANALOG_LEFT_Y) * -1;
+		bool auton_button = master.get_digital_new_press(DIGITAL_B);
 
 		//volt calculations
 		double turnvolts = (turnval * 0.12);
@@ -118,8 +168,16 @@ void opcontrol() {
 		leftm.move_voltage((speedvolts + turnvolts) * 1000);
 		launcherm.move_voltage(12000 * master.get_digital(DIGITAL_R1));
 		intakem.move_voltage(12000 * (master.get_digital(DIGITAL_L1) - master.get_digital(DIGITAL_L2)));
+		
+		if (auton_button){
+			autonomous();
+			break;
+		}
+		
+
 
 		pros::delay(20);
 	
 	}
+
 }
