@@ -14,22 +14,27 @@
  * to keep execution time for this mode under a few seconds.
  */
 
-//initialize motors
-pros::Motor rightma(2);
-pros::Motor rightmb(4);
-pros::Motor leftma(3);
-pros::Motor leftmb(6);
-pros::IMU imu_1(20);
+//initalize devices
+pros::Motor rightmai (3, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+pros::Motor rightmbi (6, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
+pros::Motor leftmai (2, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+pros::Motor leftmbi (4, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+pros::Motor launchermi (7, MOTOR_GEARSET_36, false, MOTOR_ENCODER_DEGREES);
+pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
+pros::IMU inertial_sensor(9);
 //initialize motor groups
-pros::Motor_Group rightm({rightma, rightmb});
-pros::Motor_Group leftm({leftma, leftmb});
+pros::Motor_Group leftmau({leftmai, leftmbi});
+pros::Motor_Group rightmau({rightmai, rightmbi});
+
+//
+int autonomous_number = 0;
 
 lemlib::OdomSensors_t sensors{
 	nullptr,
 	nullptr,
 	nullptr,
 	nullptr,
-	&imu_1
+	&inertial_sensor
 };
 
 // forward/backward PID
@@ -56,8 +61,8 @@ lemlib::ChassisController_t angularController {
 
 	//initialize drive train
 lemlib::Drivetrain_t drivetrain1{
-	&leftm,
-	&rightm,
+	&leftmau,
+	&rightmau,
 	10,
 	4,
 	400
@@ -65,16 +70,9 @@ lemlib::Drivetrain_t drivetrain1{
 lemlib::Chassis chassis(drivetrain1, lateralController, angularController, sensors);
 
 void initialize() {
-	//initalize devices
-	pros::Motor rightmai (2, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor rightmbi (4, MOTOR_GEARSET_6, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor leftmai (3, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor leftmbi (6, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::Motor launchermi (7, MOTOR_GEARSET_36, false, MOTOR_ENCODER_DEGREES);
-	pros::Motor intakemi (11, MOTOR_GEARSET_6, true, MOTOR_ENCODER_DEGREES);
-	pros::IMU inertial_sensor(20);
-
+	//calibrate
 	chassis.calibrate();
+	chassis.setPose(-40,-60,270);
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "hello there!");
 	
@@ -96,7 +94,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -110,10 +110,15 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous(){
-	
+	chassis.moveTo(-56, -60, 1000);
+	chassis.turnTo(-69, -72, 1000);
+	chassis.moveTo(-70, -70, 600);
+	intakemi.move_relative(360, 100);
+	launchermi.move_relative(16 * 360, 100);
+
+
 	
 }
-
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -132,10 +137,10 @@ void opcontrol() {
 
 	//declare devices
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor rightma(2);
-	pros::Motor rightmb(4);
-	pros::Motor leftma(3);
-	pros::Motor leftmb(6);
+	pros::Motor rightma(3);
+	pros::Motor rightmb(6);
+	pros::Motor leftma(2);
+	pros::Motor leftmb(4);
 	pros::Motor launcherm(7);
 	pros::Motor intakem(11);
 
@@ -156,14 +161,14 @@ void opcontrol() {
 	while (true) {
 		//update live varibles
 		double turnval = master.get_analog(ANALOG_RIGHT_X);
-		double speedval = master.get_analog(ANALOG_LEFT_Y) * -1;
+		double speedval = master.get_analog(ANALOG_LEFT_Y);
 		bool auton_button = master.get_digital_new_press(DIGITAL_B);
 
 		//volt calculations
 		double turnvolts = (turnval * 0.12);
 		double speedvolts = (speedval * 0.12 * (1 - (std::abs(turnvolts)/12.0)));
 
-		//spin motors
+		//spin motors	
 		rightm.move_voltage((speedvolts - turnvolts) * 1000);
 		leftm.move_voltage((speedvolts + turnvolts) * 1000);
 		launcherm.move_voltage(12000 * master.get_digital(DIGITAL_R1));
