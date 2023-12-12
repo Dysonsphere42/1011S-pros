@@ -1,5 +1,5 @@
 # 1011S-pros
 1011S robot code using pros
 
-ONLY WORKING CODE THAT HAS BEEN TESTED ON THE ROBOT SHOULD BE PUSHED TO THE MAIN BRANCE PLEASE AND THANKYOU!
--Dyson
+Old deprecated code. this repo has now been arcived
+new code coming soon
