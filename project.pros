@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "1011S-pros",
+    "project_name": "1011S-match",
     "target": "v5",
     "templates": {
       "LemLib": {
@@ -332,7 +332,9 @@
       }
     },
     "upload_options": {
-      "icon": "ufo"
+      "icon": "planet",
+      "description": "1011S code for turnoment",
+      "slot": 1
     }
   }
 }
